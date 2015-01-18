@@ -22,8 +22,20 @@ public interface TetrisModel {
     /** 左移 */
     boolean moveLeft();
 
+    /** 开始持续左移 */
+    void startMoveLeft();
+
+    /** 结束持续左移 */
+    void stopMoveLeft();
+
     /** 右移 */
     boolean moveRight();
+
+    /** 开始持续右移 */
+    void startMoveRight();
+
+    /** 结束持续右移 */
+    void stopMoveRight();
 
     /** 顺时针旋转90度 */
     boolean spinPos();
@@ -38,7 +50,7 @@ public interface TetrisModel {
     void setSpeedUp(boolean isSpeedUp);
 
     /** 直接下落 */
-    void straightDown();
+    void hardDown();
 
     /** hold当前方块 */
     void hold();
@@ -160,8 +172,37 @@ public interface TetrisModel {
             }
             return matrix;
         }
-    }
 
+        public static Tile getTile(int number) {
+            Tile tile = null;
+            switch (number) {
+                case 0:
+                    tile = Tile.I;
+                    break;
+                case 1:
+                    tile = Tile.L;
+                    break;
+                case 2:
+                    tile = Tile.J;
+                    break;
+                case 3:
+                    tile = Tile.S;
+                    break;
+                case 4:
+                    tile = Tile.Z;
+                    break;
+                case 5:
+                    tile = Tile.T;
+                    break;
+                case 6:
+                    tile = Tile.O;
+                    break;
+                default:
+                    assert false;
+            }
+            return tile;
+        }
+    }
 
     /**
      *  枚举 砖块方向
@@ -192,8 +233,5 @@ public interface TetrisModel {
         public int getNumber() {
             return number;
         }
-
-
     }
-
 }
