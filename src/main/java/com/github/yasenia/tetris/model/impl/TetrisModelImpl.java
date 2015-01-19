@@ -1,10 +1,16 @@
 package com.github.yasenia.tetris.model.impl;
 
+import com.github.yasenia.tetris.model.Direction;
 import com.github.yasenia.tetris.model.TetrisConfig;
 import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.model.event.OnTileLockListener;
+import com.github.yasenia.tetris.model.Tile;
+import com.github.yasenia.tetris.model.event.OnTileModifiedListener;
+import com.github.yasenia.tetris.model.event.TileModifiedEvent;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Yasenia
@@ -13,11 +19,21 @@ import java.util.*;
 public class TetrisModelImpl implements TetrisModel {
     public static final int ATOMIC_TIME = 20;
 
-    /** 速度级别 */
-    public static final int[] SPEED_LEVEL = {25, 20, 16, 12, 9, 6, 4, 2, 1, 0};
-    /** 敏感度级别 */
-    public static final double[] SENSITIVITY_LEVEL = {20, 17, 14, 11, 9, 7, 5, 4, 3, 2};
-    /** 锁定时长 */
+    private List<OnTileModifiedListener> onTileModifiedListenerList;
+
+    /** 速度常量 */
+    private static final int[] SPEED_CONST = {25, 20, 16, 12, 9, 6, 4, 2, 1, 0};
+    /** 敏感度常量 */
+    private static final int[] SENSITIVITY_CONST = {20, 17, 14, 11, 9, 7, 5, 4, 3, 2};
+
+    /** 速度等级 */
+    private int speedLevel;
+
+    /** 敏感度等级 */
+    private int sensitivityLevel;
+
+    /** 软降标识 */
+    private boolean onSoftDown;
 
     /** 游戏配置 */
     private TetrisConfig config;
@@ -41,20 +57,29 @@ public class TetrisModelImpl implements TetrisModel {
     /** 砖块队列 */
     private List<Tile> tileList;
 
-    /** 下落时间间隔，数值越小，下落速度越快 */
-    private int downInterval = 15;
-    /** 下落时间间隔计数 */
-    private int currentDownInterval;
+    /** hold区砖块 */
+    private Tile holdTile;
 
-    /** 锁定延时间隔，数值越小，锁定越迅速 */
-    private int lockInterval = 1;
-    /** 锁定时间间隔计数 */
-    private int currentLockInterval;
+    /** 是否可以进行hold操作 */
+    private int holdFlag;
 
-    /** 强制锁定延时间隔，数值越小，强制锁定越迅速 */
-    private int hardLockInterval = 3;
-    /** 强制锁定时间间隔计数 */
-    private int currentHardLockInterval;
+    /** 下落计数标识 */
+    private int downFlag;
+
+    /** 锁定计数标识 */
+    private int lockFlag;
+
+    /** 强制锁定计数标识 */
+    private int hardLockFlag;
+
+    /** 累积时间 */
+    private Duration accumulateTime;
+
+    /** 游戏时间戳 */
+    private Instant gameInstant;
+
+    /** 游戏得分 */
+    private int score;
 
     /** 游戏核心线程 */
     private TetrisMainThread tetrisMainThread;
@@ -62,15 +87,17 @@ public class TetrisModelImpl implements TetrisModel {
     /** 左移控制线程 */
     private TetrisMoveThread moveLeftThread;
     private boolean moveLeftFlag;
+
     /** 右移控制线程 */
     private TetrisMoveThread moveRightThread;
     private boolean moveRightFlag;
 
     public TetrisModelImpl() {
         config = TetrisConfig.getDefaultConfig();
-        gameStatus = GameStatus.PREPARE;
         gameBaseMatrix = new int[config.getHeight()][config.getWidth()];
-        tileList = new ArrayList<Tile>();
+        speedLevel = config.getSpeedLevel();
+        sensitivityLevel = config.getSensitivityLevel();
+        gameStatus = GameStatus.PREPARE;
     }
 
     @Override
@@ -81,6 +108,12 @@ public class TetrisModelImpl implements TetrisModel {
             // 启动游戏线程
             tetrisMainThread = new TetrisMainThread();
             tetrisMainThread.start();
+            // 记录当前时间戳
+            gameInstant = Instant.now();
+            // 累积时间清零
+            accumulateTime = Duration.ZERO;
+            // 得分清零
+            score = 0;
 
             // 更改游戏状态
             gameStatus = GameStatus.PLAYING;
@@ -94,6 +127,8 @@ public class TetrisModelImpl implements TetrisModel {
             if (null != tetrisMainThread) {
                 tetrisMainThread.setFlag(false);
             }
+            // 更新累积时间
+            accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
 
             // 更改游戏状态
             gameStatus = GameStatus.PAUSE;
@@ -106,10 +141,26 @@ public class TetrisModelImpl implements TetrisModel {
             // 启动游戏线程
             tetrisMainThread = new TetrisMainThread();
             tetrisMainThread.start();
+            // 记录当前时间戳
+            gameInstant = Instant.now();
 
             // 更改游戏状态
             gameStatus = GameStatus.PLAYING;
         }
+    }
+
+    @Override
+    public void setSpeedLevel(int speedLevel) {
+        speedLevel = Math.max(speedLevel, 0);
+        speedLevel = Math.min(speedLevel, SPEED_CONST.length - 1);
+        this.speedLevel = speedLevel;
+    }
+
+    @Override
+    public void setSensitivityLevel(int sensitivityLevel) {
+        sensitivityLevel = Math.max(sensitivityLevel, 0);
+        sensitivityLevel = Math.min(sensitivityLevel, SENSITIVITY_CONST.length - 1);
+        this.sensitivityLevel = sensitivityLevel;
     }
 
     @Override
@@ -124,7 +175,7 @@ public class TetrisModelImpl implements TetrisModel {
         }
         // 移动成功，锁定计数清零
         else {
-            currentLockInterval = 0;
+            lockFlag = 0;
         }
         return flag;
     }
@@ -162,7 +213,7 @@ public class TetrisModelImpl implements TetrisModel {
         }
         // 移动成功，锁定计数清零
         else {
-            currentLockInterval = 0;
+            lockFlag = 0;
         }
         return flag;
     }
@@ -190,58 +241,66 @@ public class TetrisModelImpl implements TetrisModel {
 
     @Override
     public synchronized boolean spinPos() {
-        boolean flag = true;
         // 顺时针旋转90度
         direction = Direction.getDirection((direction.getNumber() + 1) % 4);
-        // 冲突，则还原动作
-        if (hasConflict()) {
-            direction = Direction.getDirection((direction.getNumber() + 3) % 4);
-            flag = false;
-        }
+
+        boolean flag = adaptTile();
+
         // 旋转成功，锁定计数清零
+        if (flag) {
+            lockFlag = 0;
+        }
+        // 旋转失败，还原动作
         else {
-            currentLockInterval = 0;
+            direction = Direction.getDirection((direction.getNumber() + 3) % 4);
         }
         return flag;
     }
 
     @Override
     public synchronized boolean spinNeg() {
-        boolean flag = true;
         // 逆时针旋转90度
         direction = Direction.getDirection((direction.getNumber() + 3) % 4);
-        // 冲突，则还原动作
-        if (hasConflict()) {
-            direction = Direction.getDirection((direction.getNumber() + 1) % 4);
-            flag = false;
-        }
+
+        boolean flag = adaptTile();
+
         // 旋转成功，锁定计数清零
+        if (flag) {
+            lockFlag = 0;
+        }
+        // 旋转失败，还原动作
         else {
-            currentLockInterval = 0;
+            direction = Direction.getDirection((direction.getNumber() + 1) % 4);
         }
         return flag;
     }
 
     @Override
     public synchronized boolean spinRev() {
-        boolean flag = true;
         // 旋转180度
         direction = Direction.getDirection((direction.getNumber() + 2) % 4);
-        // 冲突，则还原动作
-        if (hasConflict()) {
-            direction = Direction.getDirection((direction.getNumber() + 2) % 4);
-            flag = false;
-        }
+
+        boolean flag = adaptTile();
+
         // 旋转成功，锁定计数清零
+        if (flag) {
+            lockFlag = 0;
+        }
+        // 旋转失败，还原动作
         else {
-            currentLockInterval = 0;
+            direction = Direction.getDirection((direction.getNumber() + 2) % 4);
         }
         return flag;
     }
 
     @Override
-    public void setSpeedUp(boolean isSpeedUp) {
-        // TODO 实现方法
+    public void startSoftDown() {
+        onSoftDown = true;
+    }
+
+    @Override
+    public void stopSoftDown() {
+        onSoftDown = false;
     }
 
     @Override
@@ -261,48 +320,66 @@ public class TetrisModelImpl implements TetrisModel {
 
     @Override
     public void hold() {
-        // TODO 实现方法
+        if (holdFlag == 0) {
+            // 若hold区为空，将当前下落方块置入hold区
+            if (null == holdTile) {
+                holdTile = currentTile;
+            }
+            // 若hold区非空，将当前下落方块置入hold区,将hold区砖块置于砖块队列列首
+            else {
+                Tile temp = holdTile;
+                holdTile = currentTile;
+                tileList.add(0, temp);
+            }
+            // 更改hold标识位
+            holdFlag++;
+            // 开始掉落下一砖块
+            nextTile();
+        }
     }
 
     @Override
     public void progress() {
         if (gameStatus == GameStatus.PLAYING) {
             // 判断是否下落
-            if (currentDownInterval == downInterval) {
+            if (downFlag >= (onSoftDown ? SPEED_CONST[speedLevel] / 3 : SPEED_CONST[speedLevel])) {
                 // 尝试下落
                 boolean isDown = moveDown();
                 // 若成功下落，下落、锁定、强制锁定计数均归零
                 if (isDown) {
-                    currentDownInterval = 0;
-                    currentLockInterval = 0;
-                    currentHardLockInterval = 0;
+                    downFlag = 0;
+                    lockFlag = 0;
+                    hardLockFlag = 0;
                 }
                 // 若无法下落
                 else {
                     boolean isLock = false;
                     // 判断是否被强制锁定
-                    if (currentHardLockInterval == hardLockInterval) {
+                    if (hardLockFlag >= SPEED_CONST[speedLevel] * 10) {
+                        System.out.println("强制锁定");
                         isLock = true;
                     }
                     else {
-                        currentHardLockInterval++;
+                        hardLockFlag++;
                         // 判断是否被锁定
-                        if (currentLockInterval == lockInterval) {
+                        if (lockFlag >= SPEED_CONST[speedLevel] * 2) {
                             isLock = true;
+                            System.out.println("锁定");
                         }
                         else{
-                            currentLockInterval++;
+                            lockFlag++;
                         }
                     }
                     if (isLock) {
                         // 下落、锁定、强制锁定计数均归零
-                        currentDownInterval = 0;
-                        currentLockInterval = 0;
-                        currentHardLockInterval = 0;
+                        downFlag = 0;
+                        lockFlag = 0;
+                        hardLockFlag = 0;
 
+                        // 锁定砖块
                         lockTile();
+                        // 消除满行
                         clearTile();
-
                         // 开始下落下一砖块
                         nextTile();
                     }
@@ -310,60 +387,126 @@ public class TetrisModelImpl implements TetrisModel {
             }
             // 若不下落，则下落标识计数自增
             else {
-                currentDownInterval++;
+                downFlag++;
             }
         }
     }
 
     @Override
     public GameStatus getGameStatus() {
-        // TODO 实现方法
         return gameStatus;
     }
 
     @Override
     public synchronized int[][] getGameDisplayMatrix() {
+
+
         // 新建显示矩阵
         int[][] displayMatrix = new int[gameBaseMatrix.length][];
         // 复制基矩阵
         for (int i = 0; i < gameBaseMatrix.length; i++) {
             displayMatrix[i] = Arrays.copyOf(gameBaseMatrix[i], gameBaseMatrix[i].length);
         }
+
+
+        // 复制投影矩阵
+        if (null != currentTile) {
+            // 记录砖块原始高度
+            int tempY = y;
+            // 计算投影位置
+            // 下落到底
+            while (true) {
+                y++;
+                if (hasConflict()) {
+                    y--;
+                    break;
+                }
+            }
+            int[][] tileMatrix = currentTile.getTileMatrix(direction);
+            for (int i = 0; i < tileMatrix.length; i++) {
+                for (int j = 0; j < tileMatrix[i].length; j++) {
+                    if (tileMatrix[i][j] != 0
+                            && (y + i) >= 0 && (y + i) < displayMatrix.length
+                            && (x + j) >= 0 && (x + j) < displayMatrix[y + i].length) {
+                        displayMatrix[y + i][x + j] = -tileMatrix[i][j];
+                    }
+                }
+            }
+            // 还原砖块位置
+            y = tempY;
+        }
+
         // 复制砖块矩阵
         if (null != currentTile) {
             int[][] tileMatrix = currentTile.getTileMatrix(direction);
             for (int i = 0; i < tileMatrix.length; i++) {
                 for (int j = 0; j < tileMatrix[i].length; j++) {
-                    if (tileMatrix[i][j] != 0 && (y + i) < displayMatrix.length && (x + j) < displayMatrix[y + i].length) {
+                    if (tileMatrix[i][j] != 0
+                            && (y + i) >= 0 && (y + i) < displayMatrix.length
+                            && (x + j) >= 0 && (x + j) < displayMatrix[y + i].length) {
                         displayMatrix[y + i][x + j] = tileMatrix[i][j];
                     }
                 }
             }
         }
+
         return displayMatrix;
     }
 
     @Override
     public List<Tile> getFollowingTileList() {
-        List<Tile> tileList = new ArrayList<Tile>();
-        int lastIndex = Math.min(config.getFollowingTileCounts(), this.tileList.size());
-        for (int i = 0; i < lastIndex; i++) {
-            tileList.add(this.tileList.get(i));
+        // 确定最大数目
+        int tileCounts = Math.min(config.getFollowingTileCounts(), 7);
+        // 返回队列中前 tileCounts 个砖块
+        List<Tile> followingTileList = null;
+        if (null != tileList) {
+            followingTileList = tileList.stream().limit(tileCounts).collect(Collectors.toList());
         }
-        return tileList;
+        return followingTileList;
     }
 
     @Override
     public Tile getHoldTile() {
-        // TODO 实现方法
-        return null;
+        return holdTile;
     }
 
     @Override
-    public void setOnTileLockListener(OnTileLockListener listener) {
-        // TODO 实现方法
+    public int getScore() {
+        return score;
     }
 
+    @Override
+    public Duration getTime() {
+        Duration time = Duration.ZERO;
+        switch (gameStatus) {
+            case PLAYING:
+                time = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+                break;
+            case PAUSE: case OVER:
+                time = accumulateTime;
+                break;
+        }
+
+        return time;
+    }
+
+    @Override
+    public void addOnTileModifiedListener(OnTileModifiedListener listener) {
+        if (null == onTileModifiedListenerList) {
+            onTileModifiedListenerList = new ArrayList<>();
+        }
+        // 如果监听队列中不包含该监听器，则添加该监听器进入监听队列
+        if (onTileModifiedListenerList.stream().filter(l -> l == listener).count() == 0) {
+            onTileModifiedListenerList.add(listener);
+        }
+    }
+
+    @Override
+    public void removeOnTileModifiedListener(OnTileModifiedListener listener) {
+        if (null != onTileModifiedListenerList) {
+            onTileModifiedListenerList.remove(listener);
+        }
+    }
 
     /**
      *  判断砖块位置是否存在冲突
@@ -373,14 +516,60 @@ public class TetrisModelImpl implements TetrisModel {
         int[][] tileMatrix = currentTile.getTileMatrix(direction);
         for (int i = 0; i < tileMatrix.length; i++) {
             for (int j = 0; j < tileMatrix[i].length; j++) {
-                // 砖格不为空时，进行检查。越过边界或冲突则检查不通过
-                if (tileMatrix[i][j] != 0
+                // 上边界以内，砖格不为空时，进行检查。越过边界或冲突则检查不通过
+                if (y + i >= 0 && tileMatrix[i][j] != 0
                         && (x + j < 0 || x + j >= gameBaseMatrix[i].length
                         || y + i >= gameBaseMatrix.length
                         || gameBaseMatrix[y + i][x + j] != 0)) {
                     flag = true; break;
                 }
             }
+        }
+        return flag;
+    }
+
+    /**
+     * 调整砖块位置以适应周围环境
+     * */
+    private synchronized boolean adaptTile() {
+        boolean flag = false;
+
+        // 记录砖块原始位置
+        int tempX = x;
+        int tempY = y;
+
+        // 设定砖块调整范围
+        int[] xRange;
+        int[] yRange;
+        // 对于 I 型砖块，最大调整范围为2格
+        if (currentTile == Tile.I) {
+            xRange = new int[]{x, x - 1, x + 1, x - 2, x + 2};
+            yRange = new int[]{y, y - 1, y + 1, y - 2, y + 2};
+        }
+        // 对于其它砖块，最大调整范围为1格
+        else {
+            xRange = new int[]{x, x - 1, x + 1};
+            yRange = new int[]{y, y - 1, y + 1};
+        }
+        // 调整砖块位置
+        for (int x : xRange) {
+            for (int y : yRange) {
+                this.x = x;
+                this.y = y;
+                // 调整成功，跳出循环
+                if (!hasConflict()) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (flag) {
+                break;
+            }
+        }
+
+        if (!flag) {
+            x = tempX;
+            y = tempY;
         }
         return flag;
     }
@@ -406,7 +595,9 @@ public class TetrisModelImpl implements TetrisModel {
         int[][] tileMatrix = currentTile.getTileMatrix(direction);
         for (int i = 0; i < tileMatrix.length; i++) {
             for (int j = 0; j < tileMatrix[i].length; j++) {
-                if (tileMatrix[i][j] != 0 && (y + i) < gameBaseMatrix.length && (x + j) < gameBaseMatrix[y + i].length) {
+                if (tileMatrix[i][j] != 0
+                        && y + i >= 0 && y + i < gameBaseMatrix.length
+                        && x + j >= 0 && x + j < gameBaseMatrix[y + i].length) {
                     gameBaseMatrix[y + i][x + j] = tileMatrix[i][j];
                 }
             }
@@ -414,7 +605,9 @@ public class TetrisModelImpl implements TetrisModel {
     }
 
     /** 消除方块 */
-    private synchronized void clearTile() {
+    private synchronized int clearTile() {
+        int lineCounts = 0;
+
         for (int i = gameBaseMatrix.length - 1; i >= 0; i--) {
             boolean isFullRow = true;
             for (int j = 0; j < gameBaseMatrix[i].length; j++) {
@@ -422,19 +615,40 @@ public class TetrisModelImpl implements TetrisModel {
                     isFullRow = false;
                 }
             }
-            // 若为满行，消除该行
+            // 若为满行，消除该行，i 自增，lineCounts 自增
             if (isFullRow) {
                 System.arraycopy(gameBaseMatrix, 0, gameBaseMatrix, 1, i);
                 gameBaseMatrix[0] = new int[gameBaseMatrix[0].length];
+                i++;
+                lineCounts++;
             }
         }
+
+        switch (lineCounts) {
+            case 1:
+                score += 100;
+                break;
+            case 2:
+                score += 300;
+                break;
+            case 3:
+                score += 500;
+                break;
+            case 4:
+                score += 1000;
+                break;
+        }
+        return lineCounts;
     }
 
     /** 获取下一方块 */
     private void nextTile() {
+        if (null == tileList) {
+            tileList = new ArrayList<>();
+        }
         // 填充砖块队列至两组
         while (tileList.size() <= 7) {
-            List<Tile> tileBag = new ArrayList<Tile>();
+            List<Tile> tileBag = new ArrayList<>();
             for (int i = 0; i < 7; i++) {
                 tileBag.add(Tile.getTile(i));
             }
@@ -444,14 +658,39 @@ public class TetrisModelImpl implements TetrisModel {
         }
         // 设置队首砖块为当前砖块
         currentTile = tileList.remove(0);
-        x = 3; y = 0;
+        // 从界外开始连落两格进入界内
+        x = 3; y = -4;
         direction = Direction.NORTH;
-        // 若冲突，游戏结束
-        if (hasConflict()) {
+        boolean flag = false;
+        for (int i = 0; i <2; i++) {
+            // 若下落失败，结束循环
+            if (flag = moveDown()) {
+                break;
+            }
+        }
+        // 无冲突
+        if (flag) {
+            // 重设hold
+            if (holdFlag == 1) {
+                holdFlag++;
+            }
+            else if (holdFlag == 2) {
+                holdFlag = 0;
+            }
+            // 触发砖块切换事件
+            onTileModifiedListenerList.forEach(listener -> {
+                TileModifiedEvent event = new TileModifiedEvent(this);
+                listener.onTileModified(event);
+            });
+        }
+        else {
+            // 更新累积时间
+            accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+
+            // 更改游戏状态
             gameStatus = GameStatus.OVER;
         }
     }
-
 
     @Override
     public String toString() {
@@ -495,11 +734,14 @@ public class TetrisModelImpl implements TetrisModel {
     private class TetrisMoveThread extends Thread {
         private boolean flag;
 
+        private int loopCounts;
+
         // 移动方向标识
         private boolean Toward;
 
         public TetrisMoveThread(boolean Toward) {
             this.Toward = Toward;
+            this.loopCounts = 0;
         }
 
         @Override
@@ -513,11 +755,14 @@ public class TetrisModelImpl implements TetrisModel {
                 else {
                     moveRight();
                 }
+
+                long sleepSpan = ATOMIC_TIME * SENSITIVITY_CONST[sensitivityLevel] * (loopCounts == 0 ? 2 : 1);
                 try {
-                    sleep(60);
+                    sleep(sleepSpan);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                loopCounts++;
             }
         }
 

@@ -6,9 +6,11 @@ import java.util.EventObject;
  * @author Yasenia
  * @since 2015/1/17.
  */
-public class TileLockEvent extends EventObject {
+public class StatusChangedEvent extends EventObject {
 
-    public TileLockEvent(Object source) {
+    public StatusChangedEvent(Object source) {
         super(source);
     }
+
+
 }

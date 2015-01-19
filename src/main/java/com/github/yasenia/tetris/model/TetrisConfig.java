@@ -15,11 +15,17 @@ public class TetrisConfig {
     /** 后续砖块数目 */
     private int followingTileCounts;
 
+    private int speedLevel;
+
+    private int sensitivityLevel;
+
     /** 构造方法 */
     public TetrisConfig() {
         this.width = 10;
         this.height = 20;
         this.followingTileCounts = 5;
+        this.speedLevel = 4;
+        this.sensitivityLevel = 8;
     }
 
     public static TetrisConfig getDefaultConfig() {
@@ -48,5 +54,21 @@ public class TetrisConfig {
 
     public void setFollowingTileCounts(int followingTileCounts) {
         this.followingTileCounts = followingTileCounts;
+    }
+
+    public int getSpeedLevel() {
+        return speedLevel;
+    }
+
+    public void setSpeedLevel(int speedLevel) {
+        this.speedLevel = speedLevel;
+    }
+
+    public int getSensitivityLevel() {
+        return sensitivityLevel;
+    }
+
+    public void setSensitivityLevel(int sensitivityLevel) {
+        this.sensitivityLevel = sensitivityLevel;
     }
 }

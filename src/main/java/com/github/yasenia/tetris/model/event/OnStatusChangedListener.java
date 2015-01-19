@@ -6,11 +6,11 @@ import java.util.EventListener;
  * @author Yasenia
  * @since 2015/1/17.
  */
-public interface OnTileLockListener extends EventListener {
+public interface OnStatusChangedListener extends EventListener {
 
     /**
-     *  砖块锁定
+     *  游戏状态改变
      * */
-    void onTileLock(TileLockEvent event);
+    void onStatusChanged(TileModifiedEvent event);
 
 }

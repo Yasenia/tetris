@@ -1,9 +1,9 @@
 package com.github.yasenia.tetris.ui;
 
 import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.model.impl.TetrisModelImpl;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -17,40 +17,57 @@ public class TetrisFrame extends JFrame {
     final int PAUSE_KEY = KeyEvent.VK_ESCAPE;           // 暂停/恢复暂停
     final int LEFT_KEY = KeyEvent.VK_A;                 // 左移
     final int RIGHT_KEY = KeyEvent.VK_D;                // 右移
+    final int SOFT_DOWN_KEY = KeyEvent.VK_S;            // 软降
+    final int HARD_DOWN_KEY = KeyEvent.VK_SPACE;        // 硬降
     final int SPIN_POS_KEY = KeyEvent.VK_K;             // 顺时针旋转
     final int SPIN_NEG_KEY = KeyEvent.VK_J;             // 逆时针旋转
-    final int HARD_DOWN_KEY = KeyEvent.VK_SPACE;        // 硬降
-
-//    final int LEFT_KEY = KeyEvent.VK_LEFT;
+    final int SPIN_REV_KEY = KeyEvent.VK_L;             // 180度旋转
+    final int HOLD_KEY = KeyEvent.VK_SHIFT;             // hold
 
     /** 游戏模型 */
     private TetrisModel tetrisModel;
 
     /** 游戏面板 */
-    private TetrisPanel tetrisPanel;
+    private TetrisMenuBar tetrisMenuBar;
+    private TetrisMainPanel tetrisMainPanel;
+    private TetrisFollowPanel tetrisFollowPanel;
+    private TetrisHoldPanel tetrisHoldPanel;
+    private TetrisInfoPanel tetrisInfoPanel;
 
-    public TetrisFrame() {
-        this.tetrisModel = new TetrisModelImpl();
-        this.tetrisPanel = new TetrisPanel(tetrisModel);
-        this.add(tetrisPanel);
+    public TetrisFrame(TetrisModel tetrisModel) {
+        this.tetrisModel = tetrisModel;
 
-        // 添加监听器
+        initComponents();
+        setupLayout();
         addListener();
     }
 
+    /** 初始化组件 */
+    private void initComponents() {
+        this.tetrisMenuBar = new TetrisMenuBar(tetrisModel);
+        this.tetrisMainPanel = new TetrisMainPanel(tetrisModel);
+        this.tetrisFollowPanel = new TetrisFollowPanel(tetrisModel);
+        this.tetrisHoldPanel = new TetrisHoldPanel(tetrisModel);
+        this.tetrisInfoPanel = new TetrisInfoPanel(tetrisModel);
+    }
 
+    /** 设置布局 */
+    private void setupLayout() {
+        setSize(500, 602);
+        tetrisFollowPanel.setPreferredSize(new Dimension(100, 600));
+        tetrisInfoPanel.setPreferredSize(new Dimension(100, 600));
+        setLayout(new BorderLayout());
+        add(tetrisMainPanel, BorderLayout.CENTER);
+        add(tetrisFollowPanel, BorderLayout.EAST);
+        add(tetrisInfoPanel, BorderLayout.WEST);
+        setJMenuBar(tetrisMenuBar);
+
+    }
+
+    /** 添加监听器 */
     private void addListener() {
         // 监听键盘事件
         this.addKeyListener(new KeyListener() {
-            // 是否持续移动
-            private boolean keepMoveLeft;
-            private boolean keepMoveRight;
-
-            // 初始化
-            {
-                keepMoveLeft = false;
-                keepMoveRight = false;
-            }
 
             // 键盘点击事件
             @Override
@@ -62,46 +79,49 @@ public class TetrisFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
-                    // 按下左移按键
+                    // 按下左移键
                     case LEFT_KEY:
                         // 停止持续右移
-                        if (keepMoveRight) {
-                            tetrisModel.stopMoveRight();
-                        }
-                        // 若未处于持续左移状态，左移一格，标记为持续左移
-                        if (!keepMoveLeft) {
-                            tetrisModel.moveLeft();
-                            keepMoveLeft = true;
-                        }
-                        // 若处于持续左移状态，持续左移
-                        else {
-                            tetrisModel.startMoveLeft();
-                        }
+                        tetrisModel.stopMoveRight();
+                        // 持续左移
+                        tetrisModel.startMoveLeft();
                         break;
-                    // 按下右移按键
+                    // 按下右移键
                     case RIGHT_KEY:
                         // 停止持续左移
-                        if (keepMoveLeft) {
-                            tetrisModel.stopMoveLeft();
-                        }
-                        // 若未处于持续右移状态，右移一格，标记为持续右移
-                        if (!keepMoveRight) {
-                            tetrisModel.moveRight();
-                            keepMoveRight = true;
-                        }
-                        // 若处于持续右移状态，持续右移
-                        else {
-                            tetrisModel.startMoveRight();
-                        }
+                        tetrisModel.stopMoveLeft();
+                        // 持续右移
+                        tetrisModel.startMoveRight();
                         break;
+                    // 按下顺时针旋转键
                     case SPIN_POS_KEY:
+                        // 顺时针旋转
                         tetrisModel.spinPos();
                         break;
+                    // 按下逆时针旋转键
                     case SPIN_NEG_KEY:
+                        // 逆时针旋转
                         tetrisModel.spinNeg();
                         break;
+                    // 按下180度旋转键
+                    case SPIN_REV_KEY:
+                        // 180度旋转
+                        tetrisModel.spinRev();
+                        break;
+                    // 按下硬降键
                     case HARD_DOWN_KEY:
+                        // 硬降
                         tetrisModel.hardDown();
+                        break;
+                    // 按下软降键
+                    case SOFT_DOWN_KEY:
+                        // 开始软降
+                        tetrisModel.startSoftDown();
+                        break;
+                    // 按下hold键
+                    case HOLD_KEY:
+                        // 开始软降
+                        tetrisModel.hold();
                         break;
                 }
             }
@@ -110,36 +130,65 @@ public class TetrisFrame extends JFrame {
             @Override
             public void keyReleased(KeyEvent e) {
                 switch (e.getKeyCode()) {
-                    // 松开开始，游戏开始，游戏面板启动刷新线程
+                    // 松开开始键
                     case START_KEY:
-                        tetrisModel.start();
-                        tetrisPanel.startRefresh();
+                        // 游戏开始，游戏面板启动刷新线程
+                        if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PREPARE) {
+                            tetrisModel.start();
+                            if (!tetrisMainPanel.isOnRefreshing()) {
+                                tetrisMainPanel.startRefresh();
+                            }
+                            if (!tetrisInfoPanel.isOnRefreshing()) {
+                                tetrisInfoPanel.startRefresh();
+                            }
+                        }
                         break;
-                    // 暂停
+                    // 松开暂停键
                     case PAUSE_KEY:
+                        // 切换游戏状态
                         if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PLAYING) {
                             tetrisModel.pause();
+                            if (tetrisMainPanel.isOnRefreshing()) {
+                                tetrisMainPanel.stopRefresh();
+                            }
+                            if (tetrisInfoPanel.isOnRefreshing()) {
+                                tetrisInfoPanel.stopRefresh();
+                            }
                         }
                         else if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PAUSE) {
                             tetrisModel.resume();
+                            if (!tetrisMainPanel.isOnRefreshing()) {
+                                tetrisMainPanel.startRefresh();
+                            }
+                            if (!tetrisInfoPanel.isOnRefreshing()) {
+                                tetrisInfoPanel.startRefresh();
+                            }
                         }
                         break;
-                    // 松开左移按键，停止持续左移
+                    // 松开左移键
                     case LEFT_KEY:
-                        if (keepMoveLeft) {
-                            tetrisModel.stopMoveLeft();
-                            keepMoveLeft = false;
-                        }
+                        // 停止持续左移
+                        tetrisModel.stopMoveLeft();
                         break;
-                    // 松开右移按键，停止持续右移
+                    // 松开右移键
                     case RIGHT_KEY:
-                        if (keepMoveRight) {
-                            tetrisModel.stopMoveRight();
-                            keepMoveRight = false;
-                        }
+                        // 停止持续右移
+                        tetrisModel.stopMoveRight();
+                        break;
+                    // 松开软降键
+                    case SOFT_DOWN_KEY:
+                        // 停止软降
+                        tetrisModel.stopSoftDown();
                         break;
                 }
             }
+        });
+
+        // 监听砖块改变事件
+        tetrisModel.addOnTileModifiedListener(e -> {
+            tetrisFollowPanel.repaint();
+            System.out.println("切换下一砖块");
+            System.out.println("hold: " + tetrisModel.getHoldTile());
         });
     }
 }

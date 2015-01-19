@@ -10,15 +10,12 @@ import javax.swing.*;
  * @since 2015/1/17.
  */
 public class Bootstrap {
-
     public static void main(String[] args) {
         TetrisModel model = new TetrisModelImpl();
 
-
-        JFrame frame = new TetrisFrame();
-        frame.setSize(300, 600);
+        JFrame frame = new TetrisFrame(model);
         frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 }
