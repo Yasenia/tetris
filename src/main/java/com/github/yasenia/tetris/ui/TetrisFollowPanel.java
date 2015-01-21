@@ -33,7 +33,7 @@ public class TetrisFollowPanel extends JPanel {
             // 绘制砖块队列图形
             for (int i = 0; i < tileList.size(); i++) {
                 Tile tile = tileList.get(i);
-                PaintUtil.paintMatrix(g, null == tile ? null : tile.getTileMatrix(), getWidth() / 4, getWidth() * (i + 2), getWidth() / 2, getWidth() / 2);
+                PaintUtil.paintMatrix(g, null == tile ? null : tile.getTileMatrix(), getWidth() / 4, getWidth() * i, getWidth() / 2, getWidth() / 2);
             }
         }
     }

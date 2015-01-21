@@ -55,11 +55,17 @@ public class TetrisFrame extends JFrame {
     private void setupLayout() {
         setSize(500, 602);
         tetrisFollowPanel.setPreferredSize(new Dimension(100, 600));
-        tetrisInfoPanel.setPreferredSize(new Dimension(100, 600));
+        tetrisInfoPanel.setPreferredSize(new Dimension(100, 500));
+        tetrisHoldPanel.setPreferredSize(new Dimension(100, 100));
+        JPanel westPanel = new JPanel();
+        westPanel.setLayout(new BorderLayout());
+        westPanel.add(tetrisHoldPanel, BorderLayout.NORTH);
+        westPanel.add(tetrisInfoPanel, BorderLayout.CENTER);
+
         setLayout(new BorderLayout());
         add(tetrisMainPanel, BorderLayout.CENTER);
         add(tetrisFollowPanel, BorderLayout.EAST);
-        add(tetrisInfoPanel, BorderLayout.WEST);
+        add(westPanel, BorderLayout.WEST);
         setJMenuBar(tetrisMenuBar);
 
     }
@@ -187,6 +193,7 @@ public class TetrisFrame extends JFrame {
         // 监听砖块改变事件
         tetrisModel.addOnTileModifiedListener(e -> {
             tetrisFollowPanel.repaint();
+            tetrisHoldPanel.repaint();
             System.out.println("切换下一砖块");
             System.out.println("hold: " + tetrisModel.getHoldTile());
         });

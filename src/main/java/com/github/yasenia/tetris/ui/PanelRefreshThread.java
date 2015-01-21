@@ -37,7 +37,7 @@ public class PanelRefreshThread extends Thread {
     }
 
     /** 请求线程停止 */
-    public void callStop() {
+    public synchronized void callStop() {
         this.flag = false;
     }
 }
