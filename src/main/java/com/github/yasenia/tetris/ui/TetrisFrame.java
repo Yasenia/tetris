@@ -140,6 +140,7 @@ public class TetrisFrame extends JFrame {
                     case START_KEY:
                         // 游戏开始，游戏面板启动刷新线程
                         if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PREPARE) {
+                            tetrisModel.reset();
                             tetrisModel.start();
                             if (!tetrisMainPanel.isOnRefreshing()) {
                                 tetrisMainPanel.startRefresh();
@@ -198,4 +199,9 @@ public class TetrisFrame extends JFrame {
             System.out.println("hold: " + tetrisModel.getHoldTile());
         });
     }
+
+    public void startRefreshMainPanel() {
+
+    }
+
 }

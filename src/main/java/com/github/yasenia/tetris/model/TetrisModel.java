@@ -11,6 +11,9 @@ import java.util.List;
  */
 public interface TetrisModel {
 
+    /** 重置游戏 */
+    void reset();
+
     /** 开始游戏 */
     void start();
 
@@ -91,6 +94,8 @@ public interface TetrisModel {
 
     /** 移除砖块锁定监听器 */
     void removeOnTileModifiedListener(OnTileModifiedListener listener);
+
+
 
     /**
      *  枚举 游戏状态

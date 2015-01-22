@@ -1,7 +1,6 @@
 package com.github.yasenia.tetris.model.impl;
 
 import com.github.yasenia.tetris.model.Direction;
-import com.github.yasenia.tetris.model.TetrisConfig;
 import com.github.yasenia.tetris.model.TetrisModel;
 import com.github.yasenia.tetris.model.Tile;
 import com.github.yasenia.tetris.model.event.OnTileModifiedListener;
@@ -23,13 +22,17 @@ public class TetrisModelImpl implements TetrisModel {
 
     public static final int ATOMIC_TIME = 20;
 
+    public static final int GAME_HEIGHT = 20;
+    public static final int GAME_WIDTH = 10;
+    public static final int FOLLOW_TILE_COUNTS = 6;
+
     private List<OnTileModifiedListener> onTileModifiedListenerList;
 
     /** 速度常量 */
     private static final int[] SPEED_CONST = {25, 20, 16, 12, 9, 6, 4, 2, 1, 0};
 
     /** 敏感度常量 */
-    private static final int[] SENSITIVITY_CONST = {20, 17, 14, 11, 9, 7, 5, 4, 3, 2};
+    private static final int[] SENSITIVITY_CONST = {17, 14, 11, 9, 7, 5, 4, 3, 2, 1};
 
     /** 速度等级 */
     private int speedLevel;
@@ -39,9 +42,6 @@ public class TetrisModelImpl implements TetrisModel {
 
     /** 软降标识 */
     private boolean onSoftDown;
-
-    /** 游戏配置 */
-    private TetrisConfig config;
 
     /** 游戏状态 */
     private GameStatus gameStatus;
@@ -98,10 +98,25 @@ public class TetrisModelImpl implements TetrisModel {
     private boolean moveRightFlag;
 
     public TetrisModelImpl() {
-        config = TetrisConfig.getDefaultConfig();
-        gameBaseMatrix = new int[config.getHeight() + 4][config.getWidth()];
-        speedLevel = config.getSpeedLevel();
-        sensitivityLevel = config.getSensitivityLevel();
+        gameBaseMatrix = new int[GAME_HEIGHT + 4][GAME_WIDTH];
+        speedLevel = 5;
+        sensitivityLevel = 7;
+        gameStatus = GameStatus.PREPARE;
+    }
+
+    @Override
+    public void reset() {
+        if (null != tetrisMainThread) {
+            tetrisMainThread.callStop();
+        }
+        // 创建游戏线程
+        tetrisMainThread = new TetrisMainThread();
+        // 累积时间清零
+        accumulateTime = Duration.ZERO;
+        // 得分清零
+        score = 0;
+
+        // 更改游戏状态
         gameStatus = GameStatus.PREPARE;
     }
 
@@ -111,14 +126,9 @@ public class TetrisModelImpl implements TetrisModel {
             // 设置当前砖块
             nextTile();
             // 启动游戏线程
-            tetrisMainThread = new TetrisMainThread();
             tetrisMainThread.start();
             // 记录当前时间戳
             gameInstant = Instant.now();
-            // 累积时间清零
-            accumulateTime = Duration.ZERO;
-            // 得分清零
-            score = 0;
 
             // 更改游戏状态
             gameStatus = GameStatus.PLAYING;
@@ -130,7 +140,7 @@ public class TetrisModelImpl implements TetrisModel {
         if (gameStatus == GameStatus.PLAYING) {
             // 终止游戏线程
             if (null != tetrisMainThread) {
-                tetrisMainThread.setFlag(false);
+                tetrisMainThread.callStop();
             }
             // 更新累积时间
             accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
@@ -205,7 +215,7 @@ public class TetrisModelImpl implements TetrisModel {
         if (moveLeftFlag) {
             // 终止左移进程
             if (null != moveLeftThread) {
-                moveLeftThread.setFlag(false);
+                moveLeftThread.callStop();
             }
             moveLeftFlag = false;
         }
@@ -248,7 +258,7 @@ public class TetrisModelImpl implements TetrisModel {
         if (moveRightFlag) {
             // 终止右移进程
             if (null != moveRightThread) {
-                moveRightThread.setFlag(false);
+                moveRightThread.callStop();
             }
             moveRightFlag = false;
         }
@@ -484,19 +494,26 @@ public class TetrisModelImpl implements TetrisModel {
 
     @Override
     public List<Tile> getFollowingTileList() {
-        // 确定最大数目
-        int tileCounts = Math.min(config.getFollowingTileCounts(), 7);
-        // 返回队列中前 tileCounts 个砖块
         List<Tile> followingTileList = null;
-        if (null != tileList) {
-            followingTileList = tileList.stream().limit(tileCounts).collect(Collectors.toList());
+        if (gameStatus != GameStatus.PREPARE) {
+            // 确定最大数目
+            int tileCounts = Math.min(FOLLOW_TILE_COUNTS, 7);
+            // 返回队列中前 tileCounts 个砖块
+            if (null != tileList) {
+                followingTileList = tileList.stream().limit(tileCounts).collect(Collectors.toList());
+            }
         }
         return followingTileList;
     }
 
     @Override
     public Tile getHoldTile() {
-        return holdTile;
+        if (gameStatus != GameStatus.PREPARE) {
+            return holdTile;
+        }
+        else {
+            return null;
+        }
     }
 
     @Override
@@ -752,8 +769,8 @@ public class TetrisModelImpl implements TetrisModel {
             }
         }
 
-        public void setFlag(boolean flag) {
-            this.flag = flag;
+        public synchronized void callStop() {
+            this.flag = false;
         }
     }
 
@@ -792,8 +809,8 @@ public class TetrisModelImpl implements TetrisModel {
             }
         }
 
-        public void setFlag(boolean flag) {
-            this.flag = flag;
+        public synchronized void callStop() {
+            flag = false;
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.github.yasenia.tetris.model.event;
 
+import com.github.yasenia.tetris.model.TetrisModel;
+
 import java.util.EventObject;
 
 /**
@@ -8,9 +10,12 @@ import java.util.EventObject;
  */
 public class StatusChangedEvent extends EventObject {
 
-    public StatusChangedEvent(Object source) {
+    private TetrisModel.GameStatus currentStatus;
+    private TetrisModel.GameStatus lastStatus;
+
+    public StatusChangedEvent(Object source, TetrisModel.GameStatus currentStatus, TetrisModel.GameStatus lastStatus) {
         super(source);
+        this.currentStatus = currentStatus;
+        this.lastStatus = lastStatus;
     }
-
-
 }

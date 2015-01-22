@@ -11,6 +11,15 @@ import javax.swing.*;
  */
 public class Bootstrap {
     public static void main(String[] args) {
+
+
+        String lookAndFeel = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (ClassNotFoundException | UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException e) {
+            e.printStackTrace();
+        }
+
         TetrisModel model = new TetrisModelImpl();
 
         JFrame frame = new TetrisFrame(model);

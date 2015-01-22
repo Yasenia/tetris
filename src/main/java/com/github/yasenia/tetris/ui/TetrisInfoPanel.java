@@ -38,8 +38,6 @@ public class TetrisInfoPanel extends JPanel {
         g.drawString("得分：\n" + score, getWidth() / 5, getHeight() / 5);
         g.drawString("用时：\n" + time, getWidth() / 5, getHeight() / 2);
 
-//        System.out.println(score);
-//        System.out.println("=========" + time + "=========");
     }
 
     public void startRefresh() {
