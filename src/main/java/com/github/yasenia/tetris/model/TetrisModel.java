@@ -1,5 +1,6 @@
 package com.github.yasenia.tetris.model;
 
+import com.github.yasenia.tetris.model.event.OnStatusChangedListener;
 import com.github.yasenia.tetris.model.event.OnTileModifiedListener;
 
 import java.time.Duration;
@@ -11,17 +12,7 @@ import java.util.List;
  */
 public interface TetrisModel {
 
-    /** 重置游戏 */
-    void reset();
-
-    /** 开始游戏 */
-    void start();
-
-    /** 暂停游戏 */
-    void pause();
-
-    /** 恢复游戏 */
-    void resume();
+    void changeGameStatus(GameStatus gameStatus);
 
     /** 设置速度级别 */
     void setSpeedLevel(int speedLevel);
@@ -95,7 +86,11 @@ public interface TetrisModel {
     /** 移除砖块锁定监听器 */
     void removeOnTileModifiedListener(OnTileModifiedListener listener);
 
+    /** 添加游戏状态改变监听器 */
+    void addOnStatusChangedListener(OnStatusChangedListener listener);
 
+    /** 移除游戏状态改变监听器 */
+    void removeOnStatusChangedListener(OnStatusChangedListener listener);
 
     /**
      *  枚举 游戏状态

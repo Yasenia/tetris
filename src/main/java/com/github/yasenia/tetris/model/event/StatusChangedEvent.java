@@ -18,4 +18,12 @@ public class StatusChangedEvent extends EventObject {
         this.currentStatus = currentStatus;
         this.lastStatus = lastStatus;
     }
+
+    public TetrisModel.GameStatus getCurrentStatus() {
+        return currentStatus;
+    }
+
+    public TetrisModel.GameStatus getLastStatus() {
+        return lastStatus;
+    }
 }

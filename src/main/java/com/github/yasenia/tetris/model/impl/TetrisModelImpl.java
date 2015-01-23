@@ -3,7 +3,9 @@ package com.github.yasenia.tetris.model.impl;
 import com.github.yasenia.tetris.model.Direction;
 import com.github.yasenia.tetris.model.TetrisModel;
 import com.github.yasenia.tetris.model.Tile;
+import com.github.yasenia.tetris.model.event.OnStatusChangedListener;
 import com.github.yasenia.tetris.model.event.OnTileModifiedListener;
+import com.github.yasenia.tetris.model.event.StatusChangedEvent;
 import com.github.yasenia.tetris.model.event.TileModifiedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +29,8 @@ public class TetrisModelImpl implements TetrisModel {
     public static final int FOLLOW_TILE_COUNTS = 6;
 
     private List<OnTileModifiedListener> onTileModifiedListenerList;
+
+    private List<OnStatusChangedListener> onStatusChangedListenerList;
 
     /** 速度常量 */
     private static final int[] SPEED_CONST = {25, 20, 16, 12, 9, 6, 4, 2, 1, 0};
@@ -101,66 +105,70 @@ public class TetrisModelImpl implements TetrisModel {
         gameBaseMatrix = new int[GAME_HEIGHT + 4][GAME_WIDTH];
         speedLevel = 5;
         sensitivityLevel = 7;
-        gameStatus = GameStatus.PREPARE;
+        changeGameStatus(GameStatus.PREPARE);
     }
 
     @Override
-    public void reset() {
-        if (null != tetrisMainThread) {
-            tetrisMainThread.callStop();
-        }
-        // 创建游戏线程
-        tetrisMainThread = new TetrisMainThread();
-        // 累积时间清零
-        accumulateTime = Duration.ZERO;
-        // 得分清零
-        score = 0;
+    public void changeGameStatus(GameStatus gameStatus) {
+        if (null != gameStatus && this.gameStatus != gameStatus) {
+            switch (gameStatus) {
+                case PREPARE:
+                    // 停止已有游戏线程
+                    if (null != tetrisMainThread) {
+                        tetrisMainThread.callStop();
+                    }
+                    // 清空基矩阵
+                    for (int i = 0; i < gameBaseMatrix.length; i++) {
+                        for (int j = 0; j < gameBaseMatrix[i].length; j++) {
+                            gameBaseMatrix[i][j] = 0;
+                        }
+                    }
+                    // 清空砖块列表
+                    if (null != tileList) {
+                        tileList.clear();
+                    }
+                    // 清空当前砖块
+                    currentTile = null;
+                    // 重置hold区
+                    holdTile = null;
+                    // 累积时间清零
+                    accumulateTime = Duration.ZERO;
+                    // 得分清零
+                    score = 0;
+                    break;
+                case PLAYING:
+                    if (this.gameStatus == GameStatus.PREPARE) {
+                        nextTile();
+                    }
 
-        // 更改游戏状态
-        gameStatus = GameStatus.PREPARE;
-    }
-
-    @Override
-    public void start() {
-        if (gameStatus == GameStatus.PREPARE) {
-            // 设置当前砖块
-            nextTile();
-            // 启动游戏线程
-            tetrisMainThread.start();
-            // 记录当前时间戳
-            gameInstant = Instant.now();
-
-            // 更改游戏状态
-            gameStatus = GameStatus.PLAYING;
-        }
-    }
-
-    @Override
-    public void pause() {
-        if (gameStatus == GameStatus.PLAYING) {
-            // 终止游戏线程
-            if (null != tetrisMainThread) {
-                tetrisMainThread.callStop();
+                    // 创建并启动游戏线程
+                    tetrisMainThread = new TetrisMainThread();
+                    tetrisMainThread.start();
+                    // 记录当前时间戳
+                    gameInstant = Instant.now();
+                    break;
+                case PAUSE:
+                    // 停止已有游戏线程
+                    if (null != tetrisMainThread) {
+                        tetrisMainThread.callStop();
+                    }
+                    // 更新累积时间
+                    accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+                    break;
+                case OVER:
+                    break;
+                default:
+                    assert false;
             }
-            // 更新累积时间
-            accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+
+            // 触发游戏状态改变事件
+            if (null != onStatusChangedListenerList) {
+                StatusChangedEvent event = new StatusChangedEvent(this, gameStatus, this.gameStatus);
+                onStatusChangedListenerList.forEach(l -> l.onStatusChanged(event));
+            }
 
             // 更改游戏状态
-            gameStatus = GameStatus.PAUSE;
-        }
-    }
-
-    @Override
-    public void resume() {
-        if (gameStatus == GameStatus.PAUSE) {
-            // 启动游戏线程
-            tetrisMainThread = new TetrisMainThread();
-            tetrisMainThread.start();
-            // 记录当前时间戳
-            gameInstant = Instant.now();
-
-            // 更改游戏状态
-            gameStatus = GameStatus.PLAYING;
+            this.gameStatus = gameStatus;
         }
     }
 
@@ -542,7 +550,8 @@ public class TetrisModelImpl implements TetrisModel {
             onTileModifiedListenerList = new ArrayList<>();
         }
         // 如果监听队列中不包含该监听器，则添加该监听器进入监听队列
-        if (onTileModifiedListenerList.stream().filter(l -> l == listener).count() == 0) {
+        boolean flag = onTileModifiedListenerList.stream().anyMatch(l -> l == listener);
+        if (!flag) {
             onTileModifiedListenerList.add(listener);
         }
     }
@@ -551,6 +560,24 @@ public class TetrisModelImpl implements TetrisModel {
     public void removeOnTileModifiedListener(OnTileModifiedListener listener) {
         if (null != onTileModifiedListenerList) {
             onTileModifiedListenerList.remove(listener);
+        }
+    }
+
+    @Override
+    public void addOnStatusChangedListener(OnStatusChangedListener listener) {
+        if (null == onStatusChangedListenerList) {
+            onStatusChangedListenerList = new ArrayList<>();
+        }
+        boolean flag = onStatusChangedListenerList.stream().anyMatch(l -> l == listener);
+        if (!flag) {
+            onStatusChangedListenerList.add(listener);
+        }
+    }
+
+    @Override
+    public void removeOnStatusChangedListener(OnStatusChangedListener listener) {
+        if (null != onStatusChangedListenerList) {
+            onStatusChangedListenerList.remove(listener);
         }
     }
 
@@ -715,7 +742,7 @@ public class TetrisModelImpl implements TetrisModel {
             accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
 
             // 更改游戏状态
-            gameStatus = GameStatus.OVER;
+            changeGameStatus(GameStatus.OVER);
         }
         // 无冲突，切换成功
         else {
@@ -750,7 +777,6 @@ public class TetrisModelImpl implements TetrisModel {
         }
         return strBd.toString();
     }
-
 
     private class TetrisMainThread extends Thread {
         private boolean flag;

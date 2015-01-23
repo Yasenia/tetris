@@ -53,10 +53,10 @@ public class TetrisFrame extends JFrame {
 
     /** 设置布局 */
     private void setupLayout() {
-        setSize(500, 602);
+        setSize(600, 602);
         tetrisFollowPanel.setPreferredSize(new Dimension(100, 600));
-        tetrisInfoPanel.setPreferredSize(new Dimension(100, 500));
-        tetrisHoldPanel.setPreferredSize(new Dimension(100, 100));
+        tetrisInfoPanel.setPreferredSize(new Dimension(200, 400));
+        tetrisHoldPanel.setPreferredSize(new Dimension(200, 200));
         JPanel westPanel = new JPanel();
         westPanel.setLayout(new BorderLayout());
         westPanel.add(tetrisHoldPanel, BorderLayout.NORTH);
@@ -140,36 +140,17 @@ public class TetrisFrame extends JFrame {
                     case START_KEY:
                         // 游戏开始，游戏面板启动刷新线程
                         if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PREPARE) {
-                            tetrisModel.reset();
-                            tetrisModel.start();
-                            if (!tetrisMainPanel.isOnRefreshing()) {
-                                tetrisMainPanel.startRefresh();
-                            }
-                            if (!tetrisInfoPanel.isOnRefreshing()) {
-                                tetrisInfoPanel.startRefresh();
-                            }
+                            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PLAYING);
                         }
                         break;
                     // 松开暂停键
                     case PAUSE_KEY:
                         // 切换游戏状态
                         if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PLAYING) {
-                            tetrisModel.pause();
-                            if (tetrisMainPanel.isOnRefreshing()) {
-                                tetrisMainPanel.stopRefresh();
-                            }
-                            if (tetrisInfoPanel.isOnRefreshing()) {
-                                tetrisInfoPanel.stopRefresh();
-                            }
+                            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PAUSE);
                         }
                         else if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.PAUSE) {
-                            tetrisModel.resume();
-                            if (!tetrisMainPanel.isOnRefreshing()) {
-                                tetrisMainPanel.startRefresh();
-                            }
-                            if (!tetrisInfoPanel.isOnRefreshing()) {
-                                tetrisInfoPanel.startRefresh();
-                            }
+                            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PLAYING);
                         }
                         break;
                     // 松开左移键
@@ -191,12 +172,36 @@ public class TetrisFrame extends JFrame {
             }
         });
 
+        // 监听游戏状态改变事件
+        tetrisModel.addOnStatusChangedListener(e -> {
+
+            switch (e.getCurrentStatus()) {
+                case PREPARE:
+                    tetrisMainPanel.stopRefresh();
+                    tetrisInfoPanel.stopRefresh();
+                    break;
+                case PLAYING:
+                    tetrisMainPanel.startRefresh();
+                    tetrisInfoPanel.startRefresh();
+                    break;
+                case PAUSE:
+                    tetrisMainPanel.stopRefresh();
+                    tetrisInfoPanel.stopRefresh();
+                    break;
+                case OVER:
+                    tetrisMainPanel.stopRefresh();
+                    tetrisInfoPanel.stopRefresh();
+                    break;
+            }
+
+            tetrisFollowPanel.repaint();
+            tetrisHoldPanel.repaint();
+        });
+
         // 监听砖块改变事件
         tetrisModel.addOnTileModifiedListener(e -> {
             tetrisFollowPanel.repaint();
             tetrisHoldPanel.repaint();
-            System.out.println("切换下一砖块");
-            System.out.println("hold: " + tetrisModel.getHoldTile());
         });
     }
 

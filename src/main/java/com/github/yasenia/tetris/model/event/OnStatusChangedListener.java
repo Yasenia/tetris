@@ -11,6 +11,6 @@ public interface OnStatusChangedListener extends EventListener {
     /**
      *  游戏状态改变
      * */
-    void onStatusChanged(TileModifiedEvent event);
+    void onStatusChanged(StatusChangedEvent event);
 
 }
