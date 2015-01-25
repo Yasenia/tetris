@@ -20,6 +20,10 @@ public class PaintUtil {
         // 记录画笔颜色
         Color primaryColor = g.getColor();
 
+        // 绘制背景
+        g.setColor(background);
+        g.fillRect(x, y, width, height);
+
         if (null != matrix) {
             int cellHeight= height / matrix.length;
             for (int i = 0; i < matrix.length; i++) {
@@ -59,15 +63,7 @@ public class PaintUtil {
                         }
                     }
                 }
-                else {
-                    g.setColor(background);
-                    g.fillRect(x, y + cellHeight * i, width, cellHeight);
-                }
             }
-        }
-        else {
-            g.setColor(background);
-            g.fillRect(x, y, width, height);
         }
 
         // 恢复画笔颜色

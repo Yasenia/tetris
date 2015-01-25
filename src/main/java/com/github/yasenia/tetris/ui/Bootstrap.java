@@ -4,6 +4,7 @@ import com.github.yasenia.tetris.model.TetrisModel;
 import com.github.yasenia.tetris.model.impl.TetrisModelImpl;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author Yasenia
@@ -11,20 +12,25 @@ import javax.swing.*;
  */
 public class Bootstrap {
     public static void main(String[] args) {
-
-
-        String lookAndFeel = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        // 设置 lookAndFeel
         try {
-            UIManager.setLookAndFeel(lookAndFeel);
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
         } catch (ClassNotFoundException | UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
         }
 
-        TetrisModel model = new TetrisModelImpl();
-
-        JFrame frame = new TetrisFrame(model);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+        // 启动游戏
+        EventQueue.invokeLater(() -> {
+            TetrisModel model = new TetrisModelImpl();
+            JFrame frame = new TetrisFrame(model);
+            frame.setLocationRelativeTo(null);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            frame.setVisible(true);
+        });
     }
 }

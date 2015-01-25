@@ -30,7 +30,7 @@ public class TetrisHoldPanel extends JPanel {
         // 获得hold区砖块
         Tile holdTile = tetrisModel.getHoldTile();
         // 绘制hold区砖块图形
-        PaintUtil.paintMatrix(g, null == holdTile ? null : holdTile.getTileMatrix(), getWidth() / 6, getWidth() / 6, getWidth() * 2 / 3, getWidth() * 2 / 3);
+        PaintUtil.paintMatrix(g, null == holdTile ? null : holdTile.getTileMatrix(), getWidth() / 6, getWidth() / 6, getWidth() * 2 / 3, getWidth() * 2 / 3, Color.BLACK);
 
     }
 }

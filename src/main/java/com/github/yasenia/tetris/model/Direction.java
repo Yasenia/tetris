@@ -5,13 +5,38 @@ package com.github.yasenia.tetris.model;
  * @since 2015/1/19.
  */
 public enum Direction {
-    NORTH(0), EAST(1), SOUTH(2), WEST(3);
+    /**
+     *  北
+     * */
+    NORTH(0),
+    /**
+     *  东
+     * */
+    EAST(1),
+    /**
+     *  南
+     * */
+    SOUTH(2),
+    /**
+     *  西
+     * */
+    WEST(3);
+
+    /**
+     *  方位编号
+     * */
     private int number;
 
+    /**
+     *  构造方法（私有）
+     * */
     private Direction(int number) {
         this.number = number;
     }
 
+    /**
+     *  按方向编号获取方向
+     * */
     public static Direction getDirection(int number) {
         switch (number) {
             case 0:
@@ -27,6 +52,9 @@ public enum Direction {
         }
     }
 
+    /**
+     *  获取方向编号
+     * */
     public int getNumber() {
         return number;
     }

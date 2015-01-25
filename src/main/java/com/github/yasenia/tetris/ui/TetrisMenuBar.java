@@ -67,7 +67,12 @@ public class TetrisMenuBar extends JMenuBar {
         });
 
         setSpeedLevelItem.addActionListener(e -> {
+            String result = JOptionPane.showInputDialog(this, "请选择速度级别（0-9）", tetrisModel.getSpeedLevel());
 
+            int speedLevel = Integer.valueOf(result);
+
+            tetrisModel.setSpeedLevel(speedLevel);
+            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PREPARE);
         });
     }
 }

@@ -55,20 +55,33 @@ public enum Tile {
                     {0, 0, 0, 0}
             });
 
-    /** 砖块矩阵 */
+    /**
+     *  砖块矩阵
+     * */
     private int [][] tileMatrix;
 
-    /** 构造方法 */
+    /**
+     *  构造方法（私有）
+     * */
     private Tile(int[][] tileMatrix) {
         this.tileMatrix = tileMatrix;
     }
 
-    /** 获取砖块矩阵 */
+    /**
+     *  获取砖块矩阵
+     *
+     *  @return 砖块矩阵
+     * */
     public int[][] getTileMatrix() {
         return getTileMatrix(Direction.NORTH);
     }
 
-    /** 获取指定方向的砖块矩阵 */
+    /**
+     *  获取指定方向的砖块矩阵
+     *
+     *  @param direction 砖块方向
+     *  @return 砖块矩阵
+     * */
     public int[][] getTileMatrix(Direction direction) {
         int[][] matrix = new int[4][4];
         for (int i = 0; i < 4; i++) {
@@ -94,7 +107,11 @@ public enum Tile {
         return matrix;
     }
 
-    // 获取指定编号砖块
+    /**
+     *  获取指定编号砖块
+     *
+     *  @return 指定砖块
+     * */
     public static Tile getTile(int number) {
         Tile tile = null;
         switch (number) {

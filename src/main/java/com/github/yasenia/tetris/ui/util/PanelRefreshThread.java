@@ -1,4 +1,4 @@
-package com.github.yasenia.tetris.ui;
+package com.github.yasenia.tetris.ui.util;
 
 import javax.swing.*;
 
@@ -8,13 +8,19 @@ import javax.swing.*;
  */
 public class PanelRefreshThread extends Thread {
 
-    /** 刷新面板 */
+    /**
+     *  刷新面板
+     * */
     private JPanel panel;
 
-    /** 刷帧时间 */
+    /**
+     *  刷帧时间
+     * */
     private long sleepSpan;
 
-    /** 循环标识 */
+    /**
+     *  循环标识
+     * */
     private boolean flag;
 
     public PanelRefreshThread(JPanel panel, long sleepSpan) {
@@ -36,7 +42,9 @@ public class PanelRefreshThread extends Thread {
         }
     }
 
-    /** 请求线程停止 */
+    /**
+     *  请求线程停止
+     * */
     public synchronized void callStop() {
         this.flag = false;
     }

@@ -2,6 +2,7 @@ package com.github.yasenia.tetris.ui;
 
 import com.github.yasenia.tetris.model.TetrisModel;
 import com.github.yasenia.tetris.ui.util.PaintUtil;
+import com.github.yasenia.tetris.ui.util.PanelRefreshThread;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,18 +14,27 @@ import java.awt.*;
 public class TetrisMainPanel extends JPanel {
     public static final long SLEEP_SPAN = 30;
 
-    /** 模型 */
+    /**
+     *  游戏模型
+     * */
     private TetrisModel tetrisModel;
 
-    /** 刷新线程 */
+    /**
+     *  刷新线程
+     * */
     private PanelRefreshThread refreshThread;
 
-    /** 刷新状态 */
+    /**
+     *  刷新状态
+     * */
     private boolean onRefreshing;
 
+
+    /**
+     *  构造方法
+     * */
     public TetrisMainPanel(TetrisModel tetrisModel) {
         this.tetrisModel = tetrisModel;
-        onRefreshing = false;
     }
 
     @Override
@@ -67,9 +77,13 @@ public class TetrisMainPanel extends JPanel {
         if (null != refreshThread) {
             refreshThread.callStop();
         }
+        // 更改刷新状态
         onRefreshing = false;
     }
 
+    /**
+     *  获取刷新状态
+     * */
     public boolean isOnRefreshing() {
         return onRefreshing;
     }

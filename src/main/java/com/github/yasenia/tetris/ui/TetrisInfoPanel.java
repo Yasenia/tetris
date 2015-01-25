@@ -1,8 +1,7 @@
 package com.github.yasenia.tetris.ui;
 
 import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.model.Tile;
-import com.github.yasenia.tetris.ui.util.PaintUtil;
+import com.github.yasenia.tetris.ui.util.PanelRefreshThread;
 
 import javax.swing.*;
 import java.awt.*;

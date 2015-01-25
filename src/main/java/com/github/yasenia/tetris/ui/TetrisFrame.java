@@ -12,7 +12,9 @@ import java.awt.event.KeyListener;
  * @since 2015/1/18.
  */
 public class TetrisFrame extends JFrame {
-    /** 按键控制 */
+    /**
+     *  按键控制
+     * */
     final int START_KEY = KeyEvent.VK_F1;               // 开始
     final int PAUSE_KEY = KeyEvent.VK_ESCAPE;           // 暂停/恢复暂停
     final int LEFT_KEY = KeyEvent.VK_A;                 // 左移
@@ -22,18 +24,25 @@ public class TetrisFrame extends JFrame {
     final int SPIN_POS_KEY = KeyEvent.VK_K;             // 顺时针旋转
     final int SPIN_NEG_KEY = KeyEvent.VK_J;             // 逆时针旋转
     final int SPIN_REV_KEY = KeyEvent.VK_L;             // 180度旋转
-    final int HOLD_KEY = KeyEvent.VK_SHIFT;             // hold
+    final int HOLD_KEY = KeyEvent.VK_CONTROL;           // hold
 
-    /** 游戏模型 */
+    /**
+     *  游戏模型
+     * */
     private TetrisModel tetrisModel;
 
-    /** 游戏面板 */
-    private TetrisMenuBar tetrisMenuBar;
-    private TetrisMainPanel tetrisMainPanel;
-    private TetrisFollowPanel tetrisFollowPanel;
-    private TetrisHoldPanel tetrisHoldPanel;
-    private TetrisInfoPanel tetrisInfoPanel;
+    /**
+     *  游戏面板
+     * */
+    private TetrisMenuBar tetrisMenuBar;                // 菜单条
+    private TetrisMainPanel tetrisMainPanel;            // 游戏主面板
+    private TetrisFollowPanel tetrisFollowPanel;        // 后续砖块显示面板
+    private TetrisHoldPanel tetrisHoldPanel;            // hold砖块显示面板
+    private TetrisInfoPanel tetrisInfoPanel;            // 信息提示面板
 
+    /**
+     *  构造方法
+     * */
     public TetrisFrame(TetrisModel tetrisModel) {
         this.tetrisModel = tetrisModel;
 
@@ -42,7 +51,9 @@ public class TetrisFrame extends JFrame {
         addListener();
     }
 
-    /** 初始化组件 */
+    /**
+     *  初始化组件
+     * */
     private void initComponents() {
         this.tetrisMenuBar = new TetrisMenuBar(tetrisModel);
         this.tetrisMainPanel = new TetrisMainPanel(tetrisModel);
@@ -51,12 +62,14 @@ public class TetrisFrame extends JFrame {
         this.tetrisInfoPanel = new TetrisInfoPanel(tetrisModel);
     }
 
-    /** 设置布局 */
+    /**
+     *  设置布局
+     * */
     private void setupLayout() {
         setSize(600, 602);
         tetrisFollowPanel.setPreferredSize(new Dimension(100, 600));
-        tetrisInfoPanel.setPreferredSize(new Dimension(200, 400));
-        tetrisHoldPanel.setPreferredSize(new Dimension(200, 200));
+        tetrisInfoPanel.setPreferredSize(new Dimension(150, 450));
+        tetrisHoldPanel.setPreferredSize(new Dimension(150, 150));
         JPanel westPanel = new JPanel();
         westPanel.setLayout(new BorderLayout());
         westPanel.add(tetrisHoldPanel, BorderLayout.NORTH);
@@ -70,7 +83,9 @@ public class TetrisFrame extends JFrame {
 
     }
 
-    /** 添加监听器 */
+    /**
+     *  添加监听器
+     * */
     private void addListener() {
         // 监听键盘事件
         this.addKeyListener(new KeyListener() {
@@ -177,20 +192,26 @@ public class TetrisFrame extends JFrame {
 
             switch (e.getCurrentStatus()) {
                 case PREPARE:
+                    repaintAllComponents();
                     tetrisMainPanel.stopRefresh();
                     tetrisInfoPanel.stopRefresh();
                     break;
                 case PLAYING:
+                    repaintAllComponents();
                     tetrisMainPanel.startRefresh();
                     tetrisInfoPanel.startRefresh();
                     break;
                 case PAUSE:
+                    repaintAllComponents();
                     tetrisMainPanel.stopRefresh();
                     tetrisInfoPanel.stopRefresh();
+                    showPauseDialog();
                     break;
                 case OVER:
+                    repaintAllComponents();
                     tetrisMainPanel.stopRefresh();
                     tetrisInfoPanel.stopRefresh();
+                    showOverDialog();
                     break;
             }
 
@@ -205,8 +226,30 @@ public class TetrisFrame extends JFrame {
         });
     }
 
-    public void startRefreshMainPanel() {
-
+    private void repaintAllComponents() {
+        tetrisMainPanel.repaint();
+        tetrisInfoPanel.repaint();
+        tetrisFollowPanel.repaint();
+        tetrisHoldPanel.repaint();
     }
 
+    private void showPauseDialog() {
+        int result = JOptionPane.showConfirmDialog(this, "继续游戏？", "游戏暂停", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PLAYING);
+        }
+        else {
+            System.exit(0);
+        }
+    }
+
+    private void showOverDialog() {
+        int result = JOptionPane.showConfirmDialog(this, "重新开始？", "游戏结束", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PREPARE);
+        }
+        else {
+            System.exit(0);
+        }
+    }
 }
