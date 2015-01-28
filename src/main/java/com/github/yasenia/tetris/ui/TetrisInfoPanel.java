@@ -45,27 +45,29 @@ public class TetrisInfoPanel extends JPanel {
         int s = (int) time.getSeconds() % 60;
         int ss = time.getNano() / 10000000;
 
-        long seconds = time.getSeconds();
-        int nano = time.getNano();
         String timeStr = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s +  ":" + (ss < 10 ? "0" : "") + ss;
 
         g.setColor(Color.BLACK);
-        g.setFont(new Font("仿宋",Font.PLAIN, 18));
+        g.setFont(new Font("宋体",Font.PLAIN, 16));
         FontMetrics fontMetrics = g.getFontMetrics();
-        int strX = getWidth() / 5;
-        int strY = getHeight() / 5;
+        int strX = getWidth() / 10;
+        int strY = getHeight() / 20;
+        int lineHeight = (int) fontMetrics.getStringBounds("行", g).getHeight();
 
-        Rectangle2D rec  = fontMetrics.getStringBounds("得分：", g);
-        g.drawString("得分：", strX, strY);
-        strY += (int) rec.getHeight();
-        g.drawString("" + score, strX, strY);
+        String[] stringArray = new String[] {
+                "得分：", "" + score, "用时：", "" + timeStr, "",
+                "操作方法——",
+                "F1：开始", "ESC：暂停",
+                "A：左移", "D：右移",
+                "S：加速下降", "SPACE：硬降",
+                "J：顺时针旋转", "K：逆时针旋转", "L：180度旋转",
+                "CTRL：hold",
+        };
 
-        strY = getHeight() * 2 / 5;
-        rec  = fontMetrics.getStringBounds("用时：", g);
-        g.drawString("用时：", strX, strY);
-
-        strY += (int) rec.getHeight();
-        g.drawString("" + timeStr, strX, strY);
+        for (String aStringArray : stringArray) {
+            strY += lineHeight;
+            g.drawString(aStringArray, strX, strY);
+        }
 
         // 恢复画笔颜色
         g.setColor(tempColor);

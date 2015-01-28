@@ -67,7 +67,9 @@ public class TetrisFrame extends JFrame {
      *  设置布局
      * */
     private void setupLayout() {
-        setSize(600, 602);
+        setTitle("Tetris");
+        setResizable(false);
+        setSize(600, 600);
 
         tetrisMainPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
 
