@@ -13,6 +13,17 @@ import java.util.List;
 public interface TetrisModel {
 
     /**
+     *  游戏面板宽度、高度
+     * */
+    public static final int GAME_WIDTH = 10;
+    public static final int GAME_HEIGHT = 20;
+
+    /**
+     *  获取后续方块数目
+     * */
+    public static final int FOLLOW_TILE_COUNTS = 5;
+
+    /**
      *  切换游戏状态
      * */
     void changeGameStatus(GameStatus gameStatus);

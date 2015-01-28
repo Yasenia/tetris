@@ -42,13 +42,16 @@ public class TetrisMainPanel extends JPanel {
         super.paintComponent(g);
 
         // 记录画笔颜色
-        Color primaryColor = g.getColor();
+        Color tempColor = g.getColor();
+
+        g.setColor(Color.GRAY);
+        g.fillRect(0, 0, getWidth(), getHeight());
 
         // 确定绘制区域
-        int baseX = 0;
-        int baseY = 0;
-        int width = getWidth();
-        int height = getHeight();
+        int width = Math.min(getWidth(), getHeight() / 2);
+        int height = 2 * width;
+        int baseX = (getWidth() - width) / 2;
+        int baseY = (getHeight() - height) / 2;
 
         // 绘制背景
         g.setColor(Color.BLACK);
@@ -56,11 +59,16 @@ public class TetrisMainPanel extends JPanel {
 
         // 绘制图形
         if (null != tetrisModel) {
-            PaintUtil.paintMatrix(g, tetrisModel.getGameDisplayMatrix(), baseX, baseY, width, height);
+            if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.OVER) {
+                PaintUtil.paintMatrix(g, tetrisModel.getGameDisplayMatrix(), baseX, baseY, width, height, Color.BLACK, Color.GRAY);
+            }
+            else {
+                PaintUtil.paintMatrix(g, tetrisModel.getGameDisplayMatrix(), baseX, baseY, width, height);
+            }
         }
 
         // 恢复画笔颜色
-        g.setColor(primaryColor);
+        g.setColor(tempColor);
     }
 
     public void startRefresh() {

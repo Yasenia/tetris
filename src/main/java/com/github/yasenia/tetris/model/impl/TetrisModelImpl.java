@@ -25,17 +25,6 @@ public class TetrisModelImpl implements TetrisModel {
     public static final int ATOMIC_TIME = 20;
 
     /**
-     *  游戏面板宽度、高度
-     * */
-    public static final int GAME_WIDTH = 10;
-    public static final int GAME_HEIGHT = 20;
-
-    /**
-     *  获取后续方块数目
-     * */
-    public static final int FOLLOW_TILE_COUNTS = 5;
-
-    /**
      *  砖块切换监听器列表
      * */
     private List<OnTileModifiedListener> onTileModifiedListenerList;
@@ -269,7 +258,12 @@ public class TetrisModelImpl implements TetrisModel {
                     moveLeftFlag = false;
                     moveRightFlag = false;
                     // 更新累积时间
-                    accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+                    if (null != accumulateTime) {
+                        accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+                    }
+                    else {
+                        accumulateTime = Duration.between(gameInstant, Instant.now());
+                    }
                     break;
                 case OVER:
                     // 停止已有游戏线程
@@ -292,7 +286,12 @@ public class TetrisModelImpl implements TetrisModel {
                     hardLockCounter = 0;
                     holdCounter = 0;
                     // 更新累积时间
-                    accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+                    if (null != accumulateTime) {
+                        accumulateTime = accumulateTime.plus(Duration.between(gameInstant, Instant.now()));
+                    }
+                    else {
+                        accumulateTime = Duration.between(gameInstant, Instant.now());
+                    }
                     break;
                 default:
                     assert false;
