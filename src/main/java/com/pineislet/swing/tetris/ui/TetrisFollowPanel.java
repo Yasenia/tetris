@@ -9,8 +9,9 @@ import java.awt.*;
 import java.util.List;
 
 /**
+ * Create on 2015/1/19
+ *
  * @author Yasenia
- * @since 2015/1/19.
  */
 public class TetrisFollowPanel extends JPanel {
     private TetrisModel tetrisModel;
