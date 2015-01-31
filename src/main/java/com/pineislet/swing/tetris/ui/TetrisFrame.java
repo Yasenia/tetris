@@ -3,6 +3,7 @@ package com.pineislet.swing.tetris.ui;
 import com.pineislet.swing.tetris.model.TetrisModel;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -67,12 +68,24 @@ public class TetrisFrame extends JFrame {
      *  设置布局
      * */
     private void setupLayout() {
-        setSize(600, 602);
+        setTitle("Tetris");
+        setResizable(false);
+        setSize(600, 600);
+
+        tetrisMainPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
+
         tetrisFollowPanel.setPreferredSize(new Dimension(100, 600));
+        tetrisFollowPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
+
         tetrisInfoPanel.setPreferredSize(new Dimension(150, 450));
+        tetrisInfoPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
+
         tetrisHoldPanel.setPreferredSize(new Dimension(150, 150));
+        tetrisHoldPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
         JPanel westPanel = new JPanel();
-        westPanel.setLayout(new BorderLayout());
+
+        westPanel.setLayout(new BorderLayout(2, 2));
+
         westPanel.add(tetrisHoldPanel, BorderLayout.NORTH);
         westPanel.add(tetrisInfoPanel, BorderLayout.CENTER);
 
@@ -235,22 +248,27 @@ public class TetrisFrame extends JFrame {
     }
 
     private void showPauseDialog() {
-        int result = JOptionPane.showConfirmDialog(this, "继续游戏？", "游戏暂停", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (result == JOptionPane.YES_OPTION) {
-            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PLAYING);
-        }
-        else {
-            System.exit(0);
-        }
+        EventQueue.invokeLater(() -> {
+            int result = JOptionPane.showConfirmDialog(TetrisFrame.this, "继续游戏？", "游戏暂停", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (result == JOptionPane.YES_OPTION) {
+                tetrisModel.changeGameStatus(TetrisModel.GameStatus.PLAYING);
+            }
+            else {
+                System.exit(0);
+            }
+        });
+
     }
 
     private void showOverDialog() {
-        int result = JOptionPane.showConfirmDialog(this, "重新开始？", "游戏结束", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (result == JOptionPane.YES_OPTION) {
-            tetrisModel.changeGameStatus(TetrisModel.GameStatus.PREPARE);
-        }
-        else {
-            System.exit(0);
-        }
+        EventQueue.invokeLater(() -> {
+            int result = JOptionPane.showConfirmDialog(TetrisFrame.this, "重新开始？", "游戏结束", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (result == JOptionPane.YES_OPTION) {
+                tetrisModel.changeGameStatus(TetrisModel.GameStatus.PREPARE);
+            }
+            else {
+                System.exit(0);
+            }
+        });
     }
 }

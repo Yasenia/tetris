@@ -23,18 +23,33 @@ public class TetrisFollowPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        // 记录画笔颜色
+        Color tempColor = g.getColor();
+
         // 绘制背景
         g.setColor(Color.GRAY);
         g.fillRect(0, 0, getWidth(), getHeight());
 
         // 获得随后砖块队列
         List<Tile> tileList = tetrisModel.getFollowingTileList();
-        if (null != tileList) {
-            // 绘制砖块队列图形
-            for (int i = 0; i < tileList.size(); i++) {
+
+        // 绘制砖块队列图形
+        for (int i = 0; i < TetrisModel.FOLLOW_TILE_COUNTS; i++) {
+            if (null != tileList) {
                 Tile tile = tileList.get(i);
-                PaintUtil.paintMatrix(g, null == tile ? null : tile.getTileMatrix(), getWidth() / 4, getWidth() * i + getWidth() / 4, getWidth() / 2, getWidth() / 2);
+                if (tetrisModel.getGameStatus() == TetrisModel.GameStatus.OVER) {
+                    PaintUtil.paintMatrix(g, null == tile ? null : tile.getTileMatrix(), getWidth() / 4, getWidth() * i + getWidth() / 4, getWidth() / 2, getWidth() / 2, Color.BLACK, Color.GRAY);
+                }
+                else {
+                    PaintUtil.paintMatrix(g, null == tile ? null : tile.getTileMatrix(), getWidth() / 4, getWidth() * i + getWidth() / 4, getWidth() / 2, getWidth() / 2);
+                }
+            }
+            else {
+                PaintUtil.paintMatrix(g, null, getWidth() / 4, getWidth() * i + getWidth() / 4, getWidth() / 2, getWidth() / 2);
             }
         }
+
+        // 恢复画笔颜色
+        g.setColor(tempColor);
     }
 }
