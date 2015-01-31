@@ -1,6 +1,6 @@
-package com.github.yasenia.tetris.ui;
+package com.pineislet.swing.tetris.ui;
 
-import com.github.yasenia.tetris.model.TetrisModel;
+import com.pineislet.swing.tetris.model.TetrisModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,8 +8,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 /**
+ * Create on 2015/1/18
+ *
  * @author Yasenia
- * @since 2015/1/18.
  */
 public class TetrisFrame extends JFrame {
     /**

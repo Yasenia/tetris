@@ -1,10 +1,11 @@
-package com.github.yasenia.tetris.model.event;
+package com.pineislet.swing.tetris.model.event;
 
 import java.util.EventListener;
 
 /**
+ * Create on 2015/1/17
+ *
  * @author Yasenia
- * @since 2015/1/17.
  */
 public interface OnStatusChangedListener extends EventListener {
 

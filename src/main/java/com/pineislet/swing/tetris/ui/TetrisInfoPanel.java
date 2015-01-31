@@ -1,15 +1,16 @@
-package com.github.yasenia.tetris.ui;
+package com.pineislet.swing.tetris.ui;
 
-import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.ui.util.PanelRefreshThread;
+import com.pineislet.swing.tetris.model.TetrisModel;
+import com.pineislet.swing.tetris.ui.util.PanelRefreshThread;
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.Duration;
 
 /**
+ * Create on 2015/1/19
+ *
  * @author Yasenia
- * @since 2015/1/19.
  */
 public class TetrisInfoPanel extends JPanel {
     public static final long SLEEP_SPAN = 30;

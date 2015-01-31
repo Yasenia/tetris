@@ -1,8 +1,9 @@
-package com.github.yasenia.tetris.model;
+package com.pineislet.swing.tetris.model;
 
 /**
+ * Create on 2015/1/19
+ *
  * @author Yasenia
- * @since 2015/1/19.
  */
 public enum Tile {
     L(new int[][]

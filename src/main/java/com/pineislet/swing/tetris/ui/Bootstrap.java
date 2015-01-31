@@ -1,14 +1,15 @@
-package com.github.yasenia.tetris.ui;
+package com.pineislet.swing.tetris.ui;
 
-import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.model.impl.TetrisModelImpl;
+import com.pineislet.swing.tetris.model.TetrisModel;
+import com.pineislet.swing.tetris.model.impl.TetrisModelImpl;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
+ * Create on 2015/1/17
+ *
  * @author Yasenia
- * @since 2015/1/17.
  */
 public class Bootstrap {
     public static void main(String[] args) {

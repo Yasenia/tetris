@@ -1,10 +1,11 @@
-package com.github.yasenia.tetris.ui.util;
+package com.pineislet.swing.tetris.ui.util;
 
 import javax.swing.*;
 
 /**
+ * Create on 2015/1/19
+ *
  * @author Yasenia
- * @since 2015/1/19.
  */
 public class PanelRefreshThread extends Thread {
 

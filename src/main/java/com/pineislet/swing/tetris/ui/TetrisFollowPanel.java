@@ -1,8 +1,8 @@
-package com.github.yasenia.tetris.ui;
+package com.pineislet.swing.tetris.ui;
 
-import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.model.Tile;
-import com.github.yasenia.tetris.ui.util.PaintUtil;
+import com.pineislet.swing.tetris.model.TetrisModel;
+import com.pineislet.swing.tetris.model.Tile;
+import com.pineislet.swing.tetris.ui.util.PaintUtil;
 
 import javax.swing.*;
 import java.awt.*;

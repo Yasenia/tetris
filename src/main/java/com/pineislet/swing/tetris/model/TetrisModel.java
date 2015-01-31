@@ -1,14 +1,15 @@
-package com.github.yasenia.tetris.model;
+package com.pineislet.swing.tetris.model;
 
-import com.github.yasenia.tetris.model.event.OnStatusChangedListener;
-import com.github.yasenia.tetris.model.event.OnTileModifiedListener;
+import com.pineislet.swing.tetris.model.event.OnStatusChangedListener;
+import com.pineislet.swing.tetris.model.event.OnTileModifiedListener;
 
 import java.time.Duration;
 import java.util.List;
 
 /**
+ * Create on 2015/1/17
+ *
  * @author Yasenia
- * @since 2015/1/17.
  */
 public interface TetrisModel {
 

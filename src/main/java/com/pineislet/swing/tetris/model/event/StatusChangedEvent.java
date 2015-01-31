@@ -1,12 +1,13 @@
-package com.github.yasenia.tetris.model.event;
+package com.pineislet.swing.tetris.model.event;
 
-import com.github.yasenia.tetris.model.TetrisModel;
+import com.pineislet.swing.tetris.model.TetrisModel;
 
 import java.util.EventObject;
 
 /**
+ * Create on 2015/1/17
+ *
  * @author Yasenia
- * @since 2015/1/17.
  */
 public class StatusChangedEvent extends EventObject {
 

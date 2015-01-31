@@ -1,12 +1,12 @@
-package com.github.yasenia.tetris.model.impl;
+package com.pineislet.swing.tetris.model.impl;
 
-import com.github.yasenia.tetris.model.Direction;
-import com.github.yasenia.tetris.model.TetrisModel;
-import com.github.yasenia.tetris.model.Tile;
-import com.github.yasenia.tetris.model.event.OnStatusChangedListener;
-import com.github.yasenia.tetris.model.event.OnTileModifiedListener;
-import com.github.yasenia.tetris.model.event.StatusChangedEvent;
-import com.github.yasenia.tetris.model.event.TileModifiedEvent;
+import com.pineislet.swing.tetris.model.Direction;
+import com.pineislet.swing.tetris.model.TetrisModel;
+import com.pineislet.swing.tetris.model.Tile;
+import com.pineislet.swing.tetris.model.event.OnStatusChangedListener;
+import com.pineislet.swing.tetris.model.event.OnTileModifiedListener;
+import com.pineislet.swing.tetris.model.event.StatusChangedEvent;
+import com.pineislet.swing.tetris.model.event.TileModifiedEvent;
 
 import java.time.Duration;
 import java.time.Instant;
